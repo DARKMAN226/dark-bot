@@ -9,7 +9,10 @@ const path = require('path');
 const { Boom } = require('@hapi/boom');
 const config = require('./config');
 
-// Paramètres globaux
+
+
+// ==== Paramètres globaux===
+
 const PREFIX = config.PREFIX || '!';
 const ADMINS = config.ADMINS || [];
 const BOT_NAME = config.BOT_NAME || 'Dark-BOT';
@@ -20,12 +23,16 @@ function formatNumber(number) {
 }
 const adminFullNumbers = ADMINS.map(formatNumber);
 
-// Dossiers sessions/plugins
+
+
+//=== Dossiers sessions/plugins====
 const SESSIONS_DIR = path.join(__dirname, 'sessions');
 if (!fs.existsSync(SESSIONS_DIR)) fs.mkdirSync(SESSIONS_DIR);
 
 const PLUGINS_DIR = path.join(__dirname, 'plugins');
 if (!fs.existsSync(PLUGINS_DIR)) fs.mkdirSync(PLUGINS_DIR);
+
+
 
 // === CHARGEMENT DES PLUGINS ===
 const plugins = {};
@@ -41,6 +48,7 @@ fs.readdirSync(PLUGINS_DIR)
       console.log(`[PLUGIN] Chargé: ${cmd} (${file})`);
     }
   });
+
 
 // === DEBUT BOT ===
 async function startSession(phoneNumber) {
@@ -83,9 +91,8 @@ async function startSession(phoneNumber) {
     }
   });
 
-  /**
-   * Fournit le contexte du bot à tous les plugins :
-   */
+  //===Fournit le contexte du bot à tous les plugins=== :
+  
   const context = {
     prefix: PREFIX,
     ownerNumbers: adminFullNumbers,
@@ -109,7 +116,10 @@ async function startSession(phoneNumber) {
 
     console.log(`Session ${phoneNumber} - Commande reçue: ${cmd} - Arguments: ${args.join(' ')}`);
 
-    // Gestion plugins, supporte handler OU run
+
+    
+    
+    // ===Gestion plugins, supporte handler OU run===
     if (plugins[cmd]) {
       try {
         if (typeof plugins[cmd].handler === 'function') {

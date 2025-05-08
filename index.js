@@ -9,35 +9,38 @@ const path = require('path');
 const { Boom } = require('@hapi/boom');
 const config = require('./config');
 
+// Paramètres globaux
 const PREFIX = config.PREFIX || '!';
 const ADMINS = config.ADMINS || [];
+const BOT_NAME = config.BOT_NAME || 'Dark-BOT';
+const VERSION = config.VERSION || '1.0.0';
 
 function formatNumber(number) {
   return number.includes('@s.whatsapp.net') ? number : `${number}@s.whatsapp.net`;
 }
 const adminFullNumbers = ADMINS.map(formatNumber);
 
+// Dossiers sessions/plugins
 const SESSIONS_DIR = path.join(__dirname, 'sessions');
 if (!fs.existsSync(SESSIONS_DIR)) fs.mkdirSync(SESSIONS_DIR);
 
-
-
+const PLUGINS_DIR = path.join(__dirname, 'plugins');
+if (!fs.existsSync(PLUGINS_DIR)) fs.mkdirSync(PLUGINS_DIR);
 
 // === CHARGEMENT DES PLUGINS ===
-const PLUGINS_DIR = path.join(__dirname, 'plugins');
 const plugins = {};
 
 fs.readdirSync(PLUGINS_DIR)
   .filter((file) => file.endsWith('.js'))
   .forEach((file) => {
     const plugin = require(path.join(PLUGINS_DIR, file));
-    if (plugin.command && typeof plugin.handler === 'function') {
-      plugins[plugin.command] = plugin;
-      console.log(`[PLUGIN] Chargé: ${plugin.command} (${file})`);
+    // On tolère handler OU run comme entrée principale
+    if ((plugin.command || plugin.name) && (typeof plugin.handler === 'function' || typeof plugin.run === 'function')) {
+      const cmd = plugin.command || plugin.name;
+      plugins[cmd] = plugin;
+      console.log(`[PLUGIN] Chargé: ${cmd} (${file})`);
     }
   });
-
-
 
 // === DEBUT BOT ===
 async function startSession(phoneNumber) {
@@ -80,6 +83,17 @@ async function startSession(phoneNumber) {
     }
   });
 
+  /**
+   * Fournit le contexte du bot à tous les plugins :
+   */
+  const context = {
+    prefix: PREFIX,
+    ownerNumbers: adminFullNumbers,
+    botName: BOT_NAME,
+    version: VERSION,
+    phoneNumber,
+  };
+
   sock.ev.on('messages.upsert', async ({ messages, type }) => {
     if (type !== 'notify') return;
     const msg = messages[0];
@@ -95,10 +109,16 @@ async function startSession(phoneNumber) {
 
     console.log(`Session ${phoneNumber} - Commande reçue: ${cmd} - Arguments: ${args.join(' ')}`);
 
-    // Gestion plugins
+    // Gestion plugins, supporte handler OU run
     if (plugins[cmd]) {
       try {
-        await plugins[cmd].handler(sock, msg, args);
+        if (typeof plugins[cmd].handler === 'function') {
+          await plugins[cmd].handler(sock, msg, args, context);
+        } else if (typeof plugins[cmd].run === 'function') {
+          await plugins[cmd].run(sock, msg, args, context);
+        } else {
+          await sock.sendMessage(msg.key.remoteJid, { text: "Plugin sans handler ni run !" });
+        }
       } catch (e) {
         await sock.sendMessage(msg.key.remoteJid, { text: "Erreur lors de l'execution du plugin." });
         console.error(`[PLUGIN][${cmd}]`, e);
@@ -112,8 +132,8 @@ async function startSession(phoneNumber) {
 }
 
 async function startBot() {
-  console.log(`Démarrage du bot ${config.BOT_NAME || 'Dark-BOT'}...`);
-  const phoneNumbers = ['+2250705607226', '+2250507646665'];
+  console.log(`Démarrage du bot ${BOT_NAME}...`);
+  const phoneNumbers = config.PHONE_NUMBERS || ['+2250705607226', '+2250507646665'];
   for (const phoneNumber of phoneNumbers) {
     startSession(phoneNumber).catch((err) =>
       console.error(`Erreur au démarrage de la session pour ${phoneNumber}:`, err)
@@ -123,5 +143,5 @@ async function startBot() {
 
 startBot().catch((err) => console.error('Erreur au démarrage du bot:', err));
 
-// === BONUS: Export des plugins ===
+// === BONUS: Export des plugins pour usage externe ===
 module.exports = plugins;

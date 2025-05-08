@@ -5,7 +5,7 @@ const path = require('path');
 module.exports = {
   name: 'menu',
   description: 'Affiche le menu complet formaté avec les commandes existantes et le logo',
-  async run(sock, msg, args, context) {
+  async handler(sock, msg, args, context) {
     const prefix = context.prefix || '.';
     const owner = context.ownerName || 'Dark-BOT';
     const botName = context.botName || '😈Dark-BOT🔐';

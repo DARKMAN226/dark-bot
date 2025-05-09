@@ -2,6 +2,12 @@
 ![Dark-Bot](https://i.imgur.com/S44evmp.png)
 ![Dark-Bot]([ "Dark-Bot")
 
+   <br>
+<p align="left">
+<a href='dark-botid.netlify.app/' target="_blank"><img alt='Pair Code' src='https://img.shields.io/badge/-Pair Code-darkgreen?style=for-the-badge&logo=Whatsapp&logoColor=white'/< width=120 height=39/p></a>
+
+ 
+
 # <span style="color:#4A90E2">Dark-BOT MD</span>
 
 <span style="color:#50E3C2; font-weight:bold;">

@@ -1,14 +1,23 @@
+<p align="center">
+  <a href="https://git.io/typing-svg">
+    <img src="https://readme-typing-svg.demolab.com?font=Rubik+Dirt&size=65&pause=1000&color=F20C39&background=FF20A500&center=true&vCenter=true&width=1000&height=150&lines=%F0%9F%98%88Dark-BOT;Dark-Dev" alt="Typing SVG" />
+  </a>
+</p>
+
+
 # dark-bot
 ![Dark-Bot](https://i.imgur.com/S44evmp.png)
 
 <br>
+
+**1. session ID ↓**
 
 <p align="left">
   <a href="https://dark-botid.netlify.app/" target="_blank">
     <img alt="Pair Code" src="https://img.shields.io/badge/-Pair%20Code-darkgreen?style=for-the-badge&logo=Whatsapp&logoColor=white" width="120" height="39"/>
   </a>
 </p>
-
+<br>
 
 **3. Deployer sur bot-hosting ↓**
 

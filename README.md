@@ -25,7 +25,7 @@
 
 
   <br>
-**1. session ID ↓**
+**2. Session ID ↓**
 
 <p align="left">
   <a href="https://dark-botid.netlify.app/" target="_blank">

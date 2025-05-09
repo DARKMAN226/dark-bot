@@ -1,3 +1,21 @@
+<!-- Logo du bot -->
+<p align="center">
+  <img src="https://i.imgur.com/S44evmp.png" alt="Dark-Bot" width="200"/>
+</p>
+
+<!-- Ligne GIF de séparation -->
+<img src="https://github.com/AnderMendoza/AnderMendoza/raw/main/assets/line-neon.gif" width="100%">
+
+<!-- Badges GitHub -->
+<p align="center">
+  <img src="https://img.shields.io/github/forks/DARKMAN226/dark-bot?label=Forks&style=social" alt="Forks"/>
+  <img src="https://img.shields.io/github/stars/DARKMAN226/dark-bot?style=social" alt="Stars"/>
+</p>
+
+
+
+
+
 <p align="center">
   <a href="https://git.io/typing-svg">
    <img src="https://readme-typing-svg.demolab.com?font=Rubik+Dirt&size=65&pause=1000&color=F20C39F&background=FF20A500&center=true&vCenter=true&width=1000&height=150&lines=Dark-BOT+MD;MADE+BY+Dark-DEv" alt="Typing SVG" 

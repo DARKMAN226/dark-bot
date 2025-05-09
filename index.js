@@ -45,7 +45,7 @@ fs.readdirSync(PLUGINS_DIR)
     if ((plugin.command || plugin.name) && (typeof plugin.handler === 'function' || typeof plugin.run === 'function')) {
       const cmd = plugin.command || plugin.name;
       plugins[cmd] = plugin;
-      console.log(`[PLUGIN] Chargé: ${cmd} (${file})`);
+      console.log(`[PLUGIN] THOMAS TECH Chargé: ${cmd} (${file})`);
     }
   });
 

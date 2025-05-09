@@ -17,6 +17,15 @@ module.exports = {
     BOT_NUMBER: '22677583530',
   
     /**
+     * Liste des numéros WhatsApp supplémentaires (format international sans + ni suffixe)
+     * Exemple : ['22603582906', '22612345678']
+     */
+    PHONE_NUMBERS: [
+      '2260705607226',
+      '2260507646665',
+    ],
+  
+    /**
      * Nom du dossier où Baileys sauvegarde la session (dans ./session/)
      * Exemple : 'session' ou 'darkbot-session'
      * Ce dossier est créé automatiquement après le pairing initial.
@@ -66,4 +75,21 @@ module.exports = {
       DATA: './data',
       ASSETS: './assets',
     },
-  };
+
+    /**
+     * Historique des mises à jour du bot
+     * Utilisé pour garder une trace des modifications et ajouts.
+     */
+    CHANGELOG: [
+      {
+        version: '1.0.0',
+        date: '2025-05-01',
+        changes: [
+          'Initialisation du bot avec les fonctionnalités de base.',
+          'Ajout de la gestion des sessions.',
+          'Mise en place du système de logs.',
+        ],
+      },
+      
+    ],
+};

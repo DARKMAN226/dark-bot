@@ -10,9 +10,10 @@
 </p>
 
 
+**3. Deployer sur bot-hosting ↓**
 
 <a href="https://bot-hosting.net/panel/" target="_blank">
-  <img src="https://i.imgur.com/KzkDAyj.png" alt="Bot Hosting Dashboard" width="120"/>
+  <img src="https://i.imgur.com/KzkDAyj.png" alt="Bot Hosting Dashboard" width="100"/>
 </a>
 
 

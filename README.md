@@ -5,12 +5,17 @@
   </a>
 </p>
 
-
+   <br>
 # dark-bot
 ![Dark-Bot](https://i.imgur.com/S44evmp.png)
 
 <br>
 
+<img src="https://github.com/AnderMendoza/AnderMendoza/raw/main/assets/line-neon.gif" width="100%">
+![forks](https://img.shields.io/github/forks/DARKMAN226/dark-bot?label=Forks&style=social)
+![stars](https://img.shields.io/github/stars/DARKMAN226/dark-bot?style=social)
+
+  <br>
 **1. session ID ↓**
 
 <p align="left">

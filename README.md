@@ -59,4 +59,8 @@ l'envoi de médias, la réponse automatique et bien plus encore.
 - Réponses personnalisées et commandes
 - Support multimédia (images, vidéos, audio)
 
+<h3 align="center">
+  <img src="https://readme-typing-svg.herokuapp.com?font=Fira+Code&size=20&duration=3000&color=FFFFFF&background=000000&center=true&vCenter=true&width=600&lines=💎+BWM+XMD+Quantum+Edition+by+Ibrahim+Adams;⚡+The+Future+of+WhatsApp+Bots+is+Here" alt="Footer Animation">
+</h3>
+
 *Essayez Dark-BOT MD dès aujourd'hui et transformez votre WhatsApp !*

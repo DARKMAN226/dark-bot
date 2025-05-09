@@ -60,7 +60,7 @@ l'envoi de médias, la réponse automatique et bien plus encore.
 - Support multimédia (images, vidéos, audio)
 
 <h3 align="center">
-  <img src="https://readme-typing-svg.herokuapp.com?font=Fira+Code&size=20&duration=3000&color=FFFFFF&background=000000&center=true&vCenter=true&width=600&lines=💎+Dar-BOT+MD+Edition+by+Dark-DEv;⚡+The+Future+of+WhatsApp+Bots+is+Here" alt="Footer Animation">
+  <img src="https://readme-typing-svg.herokuapp.com?font=Fira+Code&size=20&duration=3000&color=FFFFFF&background=000000&center=true&vCenter=true&width=600&lines=💎+DarK-BOT+MD+Edition+by+Dark-DEv;⚡+The+Future+of+WhatsApp+Bots+is+Here" alt="Footer Animation">
 </h3>
 
 *Essayez Dark-BOT MD dès aujourd'hui et transformez votre WhatsApp !*

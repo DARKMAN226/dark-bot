@@ -10,6 +10,13 @@
 </p>
 
 
+
+<a href="https://bot-hosting.net/panel/" target="_blank">
+  <img src="https://i.imgur.com/KzkDAyj.png" alt="Bot Hosting Dashboard" width="120"/>
+</a>
+
+
+
  
 
 # <span style="color:#4A90E2">Dark-BOT MD</span>

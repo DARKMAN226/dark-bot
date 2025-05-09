@@ -1,3 +1,4 @@
+const readline = require('readline');
 const crypto = require('crypto');
 const {
   default: makeWASocket,
@@ -11,18 +12,18 @@ const { Boom } = require('@hapi/boom');
 const config = require('./config');
 
 // ==== Paramètres globaux ====
-
 const PREFIX = config.PREFIX || '!';
 const ADMINS = config.ADMINS || [];
 const BOT_NAME = config.BOT_NAME || 'Dark-BOT';
 const VERSION = config.VERSION || '1.0.0';
 
+// Formatage du numéro
 function formatNumber(number) {
   return number.includes('@s.whatsapp.net') ? number : `${number}@s.whatsapp.net`;
 }
 const adminFullNumbers = ADMINS.map(formatNumber);
 
-//=== Dossiers sessions/plugins ====
+// === Dossiers sessions/plugins ====
 const SESSIONS_DIR = path.join(__dirname, 'sessions');
 if (!fs.existsSync(SESSIONS_DIR)) fs.mkdirSync(SESSIONS_DIR);
 
@@ -36,7 +37,6 @@ fs.readdirSync(PLUGINS_DIR)
   .filter((file) => file.endsWith('.js'))
   .forEach((file) => {
     const plugin = require(path.join(PLUGINS_DIR, file));
-    // On tolère handler OU run comme entrée principale
     if ((plugin.command || plugin.name) && (typeof plugin.handler === 'function' || typeof plugin.run === 'function')) {
       const cmd = plugin.command || plugin.name;
       plugins[cmd] = plugin;
@@ -44,11 +44,33 @@ fs.readdirSync(PLUGINS_DIR)
     }
   });
 
-// === DEBUT BOT ===
+// === SAISIE INTERACTIVE DES NUMÉROS ===
+async function askPhoneNumbers() {
+  const rl = readline.createInterface({
+    input: process.stdin,
+    output: process.stdout
+  });
+  function question(query) {
+    return new Promise(resolve => rl.question(query, resolve));
+  }
+  let numbers = [];
+  while (true) {
+    const answer = await question("Entrez un numéro de téléphone WhatsApp (ou laissez vide pour finir) : ");
+    if (!answer.trim()) break;
+    numbers.push(answer.trim());
+  }
+  rl.close();
+  return numbers;
+}
+
+// === DÉBUT BOT ===
 async function startSession(phoneNumber) {
   console.log(`Démarrage de la session pour le numéro : ${phoneNumber}...`);
   const cleanedNumber = phoneNumber.replace(/[^0-9+]/g, '');
-  const sessionPath = path.join(SESSIONS_DIR, cleanedNumber);
+  // Hash SHA-256 du numéro pour anonymiser le dossier de session
+  const sessionId = crypto.createHash('sha256').update(cleanedNumber).digest('hex');
+  console.log(`Session ID (SHA-256): ${sessionId}`);
+  const sessionPath = path.join(SESSIONS_DIR, sessionId);
   if (!fs.existsSync(sessionPath)) fs.mkdirSync(sessionPath);
 
   const { state, saveCreds } = await useMultiFileAuthState(sessionPath);
@@ -74,10 +96,8 @@ async function startSession(phoneNumber) {
         console.log(`Reconnexion pour ${phoneNumber} dans 5 secondes... (Tentative ${reconnectAttempts}/5)`);
         await new Promise((res) => setTimeout(res, 5000));
         startSession(phoneNumber);
-      } else if (reconnectAttempts >= 5) {
-        console.log(`Échec de reconnexion pour ${phoneNumber} après 5 tentatives. Arrêt.`);
       } else {
-        console.log(`Session pour ${phoneNumber} déconnectée volontairement.`);
+        console.log(`Échec de reconnexion pour ${phoneNumber} après ${reconnectAttempts} tentatives.`);
       }
     } else if (connection === 'open') {
       reconnectAttempts = 0;
@@ -85,8 +105,7 @@ async function startSession(phoneNumber) {
     }
   });
 
-  //===Fournit le contexte du bot à tous les plugins=== :
-  
+  // === Fournit le contexte du bot à tous les plugins ===
   const context = {
     prefix: PREFIX,
     ownerNumbers: adminFullNumbers,
@@ -98,19 +117,17 @@ async function startSession(phoneNumber) {
   sock.ev.on('messages.upsert', async ({ messages, type }) => {
     if (type !== 'notify') return;
     const msg = messages[0];
-    if (!msg.message) return;
-    if (msg.key.fromMe) return;
+    if (!msg.message || msg.key.fromMe) return;
 
     const text = msg.message.conversation || msg.message.extendedTextMessage?.text;
-    if (!text) return;
-    if (!text.startsWith(PREFIX)) return;
+    if (!text || !text.startsWith(PREFIX)) return;
 
     const [command, ...args] = text.slice(PREFIX.length).trim().split(/\s+/);
     const cmd = command.toLowerCase();
 
     console.log(`Session ${phoneNumber} - Commande reçue: ${cmd} - Arguments: ${args.join(' ')}`);
 
-    // ===Gestion plugins, supporte handler OU run===
+    // === Gestion des plugins ===
     if (plugins[cmd]) {
       try {
         if (typeof plugins[cmd].handler === 'function') {
@@ -134,7 +151,15 @@ async function startSession(phoneNumber) {
 
 async function startBot() {
   console.log(`Démarrage du bot ${BOT_NAME}...`);
-  const phoneNumbers = config.PHONE_NUMBERS || ['2260705607226', '2260507646665'];
+  let phoneNumbers = config.PHONE_NUMBERS;
+  if (!phoneNumbers || phoneNumbers.length === 0) {
+    phoneNumbers = await askPhoneNumbers();
+    if (!phoneNumbers.length) {
+      console.error("Aucun numéro saisi. Arrêt.");
+      process.exit(1);
+    }
+  }
+
   for (const phoneNumber of phoneNumbers) {
     startSession(phoneNumber).catch((err) =>
       console.error(`Erreur au démarrage de la session pour ${phoneNumber}:`, err)
@@ -152,9 +177,10 @@ const CHANGELOG = [
       'Ajout de la gestion des sessions.',
       'Mise en place du système de logs.',
       'Ajout de la fonction printQRInTerminal pour afficher le QR code.',
+      'Hashage SHA-256 du numéro pour anonymiser les dossiers de session.',
+      'Ajout de la saisie interactive des numéros au démarrage.',
     ],
   },
-  
 ];
 
 startBot().catch((err) => console.error('Erreur au démarrage du bot:', err));

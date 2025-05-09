@@ -1,10 +1,7 @@
 const readline = require('readline');
 const crypto = require('crypto');
-const {
-  default: makeWASocket,
-  useMultiFileAuthState,
-  DisconnectReason,
-} = require('baileys');
+const { default: makeWASocket, useMultiFileAuthState, DisconnectReason } = require('baileys');
+const qrcode = require('qrcode-terminal');
 const pino = require('pino');
 const fs = require('fs');
 const path = require('path');
@@ -74,9 +71,10 @@ async function startSession(phoneNumber) {
   if (!fs.existsSync(sessionPath)) fs.mkdirSync(sessionPath);
 
   const { state, saveCreds } = await useMultiFileAuthState(sessionPath);
+
   const sock = makeWASocket({
     auth: state,
-    printQRInTerminal: true,
+    // printQRInTerminal: true, // désactivé, on gère le QR nous-même
     logger: pino({ level: config.DEBUG ? 'debug' : 'silent' }),
   });
 
@@ -84,8 +82,15 @@ async function startSession(phoneNumber) {
 
   let reconnectAttempts = 0;
 
-  sock.ev.on('connection.update', async (update) => {
-    const { connection, lastDisconnect } = update;
+  // QR code en ASCII dans le terminal
+  sock.ev.on('connection.update', (update) => {
+    const { connection, lastDisconnect, qr } = update;
+
+    if (qr) {
+      console.log("Scanne ce QR code avec WhatsApp pour connecter le bot :");
+      qrcode.generate(qr, { small: true });
+    }
+
     if (connection === 'close') {
       const err = new Boom(lastDisconnect?.error);
       const statusCode = err.output?.statusCode;
@@ -94,8 +99,7 @@ async function startSession(phoneNumber) {
       if (shouldReconnect && reconnectAttempts < 5) {
         reconnectAttempts++;
         console.log(`Reconnexion pour ${phoneNumber} dans 5 secondes... (Tentative ${reconnectAttempts}/5)`);
-        await new Promise((res) => setTimeout(res, 5000));
-        startSession(phoneNumber);
+        setTimeout(() => startSession(phoneNumber), 5000);
       } else {
         console.log(`Échec de reconnexion pour ${phoneNumber} après ${reconnectAttempts} tentatives.`);
       }
@@ -176,7 +180,7 @@ const CHANGELOG = [
       'Initialisation du bot avec les fonctionnalités de base.',
       'Ajout de la gestion des sessions.',
       'Mise en place du système de logs.',
-      'Ajout de la fonction printQRInTerminal pour afficher le QR code.',
+      'Affichage du QR code en ASCII avec qrcode-terminal.',
       'Hashage SHA-256 du numéro pour anonymiser les dossiers de session.',
       'Ajout de la saisie interactive des numéros au démarrage.',
     ],

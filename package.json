@@ -1,16 +1,24 @@
 {
   "name": "dark-bot",
   "version": "1.0.0",
-  "description": "",
+  "description": "Bot WhatsApp multi-session basé sur Baileys",
   "main": "index.js",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "start": "node index.js"
   },
-  "keywords": [],
+  "keywords": [
+    "whatsapp",
+    "bot",
+    "baileys",
+    "multi-session"
+  ],
   "author": "",
   "license": "ISC",
   "dependencies": {
     "@hapi/boom": "^10.0.1",
-    "baileys": "^6.7.16"
+    "baileys": "^6.7.16",
+    "pino": "^8.22.1",
+    "qrcode-terminal": "^0.12.0"
   }
 }
+

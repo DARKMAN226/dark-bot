@@ -9,9 +9,7 @@ const path = require('path');
 const { Boom } = require('@hapi/boom');
 const config = require('./config');
 
-
-
-// ==== Paramètres globaux===
+// ==== Paramètres globaux ====
 
 const PREFIX = config.PREFIX || '!';
 const ADMINS = config.ADMINS || [];
@@ -23,16 +21,12 @@ function formatNumber(number) {
 }
 const adminFullNumbers = ADMINS.map(formatNumber);
 
-
-
-//=== Dossiers sessions/plugins====
+//=== Dossiers sessions/plugins ====
 const SESSIONS_DIR = path.join(__dirname, 'sessions');
 if (!fs.existsSync(SESSIONS_DIR)) fs.mkdirSync(SESSIONS_DIR);
 
 const PLUGINS_DIR = path.join(__dirname, 'plugins');
 if (!fs.existsSync(PLUGINS_DIR)) fs.mkdirSync(PLUGINS_DIR);
-
-
 
 // === CHARGEMENT DES PLUGINS ===
 const plugins = {};
@@ -48,7 +42,6 @@ fs.readdirSync(PLUGINS_DIR)
       console.log(`[PLUGIN] THOMAS TECH Chargé: ${cmd} (${file})`);
     }
   });
-
 
 // === DEBUT BOT ===
 async function startSession(phoneNumber) {
@@ -116,9 +109,6 @@ async function startSession(phoneNumber) {
 
     console.log(`Session ${phoneNumber} - Commande reçue: ${cmd} - Arguments: ${args.join(' ')}`);
 
-
-    
-    
     // ===Gestion plugins, supporte handler OU run===
     if (plugins[cmd]) {
       try {
@@ -130,7 +120,7 @@ async function startSession(phoneNumber) {
           await sock.sendMessage(msg.key.remoteJid, { text: "Plugin sans handler ni run !" });
         }
       } catch (e) {
-        await sock.sendMessage(msg.key.remoteJid, { text: "Erreur lors de l'execution du plugin." });
+        await sock.sendMessage(msg.key.remoteJid, { text: "Erreur lors de l'exécution du plugin." });
         console.error(`[PLUGIN][${cmd}]`, e);
       }
     } else {
@@ -143,13 +133,28 @@ async function startSession(phoneNumber) {
 
 async function startBot() {
   console.log(`Démarrage du bot ${BOT_NAME}...`);
-  const phoneNumbers = config.PHONE_NUMBERS || ['+2250705607226', '+2250507646665'];
+  const phoneNumbers = config.PHONE_NUMBERS || ['2260705607226', '2260507646665'];
   for (const phoneNumber of phoneNumbers) {
     startSession(phoneNumber).catch((err) =>
       console.error(`Erreur au démarrage de la session pour ${phoneNumber}:`, err)
     );
   }
 }
+
+// ==== CHANGELOG ====
+const CHANGELOG = [
+  {
+    version: '1.0.0',
+    date: '2025-05-01',
+    changes: [
+      'Initialisation du bot avec les fonctionnalités de base.',
+      'Ajout de la gestion des sessions.',
+      'Mise en place du système de logs.',
+      'Ajout de la fonction printQRInTerminal pour afficher le QR code.',
+    ],
+  },
+  
+];
 
 startBot().catch((err) => console.error('Erreur au démarrage du bot:', err));
 

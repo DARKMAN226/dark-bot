@@ -18,11 +18,11 @@ const {
 // === LES CONFIGURATIONS ===
 const config = {
   PREFIX: '!',
-  ADMINS: ['1234567890@s.whatsapp.net'], 
+  ADMINS: ['1234567890@s.whatsapp.net'],  // Remplace par ton numéro admin
   BOT_NAME: 'Dark-BOT',
   VERSION: '1.0.0',
   DEBUG: true,
-  PHONE_NUMBERS: [], 
+  PHONE_NUMBERS: [], // Ou liste tes numéros ici déjà formatés si tu veux
 };
 
 
@@ -82,7 +82,7 @@ async function askPhoneNumbers() {
 
   let numbers = [];
   while (true) {
-    const answer = await question("Entrez un numéro WhatsApp (format international, ex: 33612345678), ou vide pour finir : ");
+    const answer = await question("Entrez un numéro WhatsApp (format international, ex: 225xxxxxxxxx), ou vide pour finir : ");
     if (!answer.trim()) break;
     numbers.push(formatNumber(answer.trim()));
   }
@@ -92,7 +92,7 @@ async function askPhoneNumbers() {
 
 
 
-// === FONCTION DE DÉMARRAGE D'UNE SESSION ===
+// === FONCTION DE DÉMARRAGE D'UNE SESSION AVEC RECONNEXION PROPRE ===
 async function startSession(phoneNumber) {
   logger.info(`Démarrage session pour: ${phoneNumber}`);
 
@@ -103,109 +103,96 @@ async function startSession(phoneNumber) {
 
   const { state, saveCreds } = await useMultiFileAuthState(sessionPath);
 
-  const sock = makeWASocket({
-    auth: state,
-    printQRInTerminal: false, // On génère un QR personnalisé dans la console via qrcode-terminal
-    logger: pino({ level: config.DEBUG ? 'debug' : 'silent' }),
-  });
-
-  sock.ev.on('creds.update', saveCreds);
-
   let reconnectAttempts = 0;
+  let sock;
 
-  sock.ev.on('connection.update', (update) => {
-    const { connection, lastDisconnect, qr } = update;
+  async function connect() {
+    sock = makeWASocket({
+      auth: state,
+      printQRInTerminal: false,
+      logger: pino({ level: config.DEBUG ? 'debug' : 'silent' }),
+    });
 
-    if (qr) {
-      logger.info(`QR code généré pour ${phoneNumber}, scanne-le avec WhatsApp :`);
-      qrcode.generate(qr, { small: true });
-    }
+    sock.ev.on('creds.update', saveCreds);
 
-    if (connection === 'close') {
-      const err = new Boom(lastDisconnect?.error);
-      const statusCode = err.output?.statusCode;
-      logger.warn(`Session ${phoneNumber} fermée. Code: ${statusCode}, raison: ${err.message}`);
+    sock.ev.on('connection.update', async (update) => {
+      const { connection, lastDisconnect, qr } = update;
 
-      const shouldReconnect = statusCode !== DisconnectReason.loggedOut;
-
-      if (shouldReconnect && reconnectAttempts < 5) {
-        reconnectAttempts++;
-        logger.info(`Reconnexion ${phoneNumber} dans 5s (tentative ${reconnectAttempts}/5)`);
-        setTimeout(() => {
-          // Fermer la socket permet de forcer une reconnexion propre
-          if (sock.ws.readyState === 1) {
-            sock.ws.close();
-          }
-        }, 5000);
-      } else if (statusCode === DisconnectReason.loggedOut) {
-        logger.error(`Session ${phoneNumber} déconnectée (logout). Supprime le dossier ${sessionPath} pour reconnecter.`);
-      } else {
-        logger.error(`Échec reconnexion ${phoneNumber} après ${reconnectAttempts} tentatives.`);
+      if (qr) {
+        logger.info(`QR code généré pour ${phoneNumber}, scanne-le avec WhatsApp :`);
+        qrcode.generate(qr, { small: true });
       }
-    } else if (connection === 'open') {
-      reconnectAttempts = 0;
-      logger.info(`Session ${phoneNumber} connectée à WhatsApp.`);
-    }
-  });
 
-  // Contexte partagé aux plugins
-  const context = {
-    prefix: PREFIX,
-    ownerNumbers: adminFullNumbers,
-    botName: BOT_NAME,
-    version: VERSION,
-    phoneNumber,
-    logger,
-  };
+      if (connection === 'close') {
+        const err = new Boom(lastDisconnect?.error);
+        const statusCode = err.output?.statusCode;
+        logger.warn(`Session ${phoneNumber} fermée. Code: ${statusCode}, raison: ${err.message}`);
 
-  // Gestion des messages entrants
-  sock.ev.on('messages.upsert', async ({ messages, type }) => {
-    if (type !== 'notify') return;
-    const msg = messages[0];
-    if (!msg.message || msg.key.fromMe) return;
+        if (statusCode === DisconnectReason.loggedOut) {
+          logger.error(`Session ${phoneNumber} déconnectée (logout). Supprime le dossier ${sessionPath} pour reconnecter.`);
+          return;
+        }
 
-    // Affiche dans la console d'où vient le message
-    logger.info(`Message reçu de ${msg.key.remoteJid}`);
-
-    // Récupération texte simple
-    const text = (msg.message.conversation) || (msg.message.extendedTextMessage?.text);
-    if (!text) return;
-
-    if (!text.startsWith(PREFIX)) return;
-
-    const [command, ...args] = text.slice(PREFIX.length).trim().split(/\s+/);
-    const cmd = command.toLowerCase();
-
-    logger.info(`Session ${phoneNumber} - Commande reçue: ${cmd} - Args: ${args.join(' ')}`);
-
-    if (!plugins[cmd]) {
-      await sock.sendMessage(msg.key.remoteJid, {
-        text: `❓ Commande inconnue: *${cmd}*\nTape ${PREFIX}menu pour la liste.`,
-      });
-      return;
-    }
-
-    // Vérification des permissions admin si demandée
-    if (plugins[cmd].adminOnly && !adminFullNumbers.includes(msg.key.participant || msg.key.remoteJid)) {
-      await sock.sendMessage(msg.key.remoteJid, { text: `❌ Tu n'as pas la permission d'utiliser cette commande.` });
-      logger.warn(`Utilisateur non admin tenté la commande admin ${cmd}`);
-      return;
-    }
-
-    // Exécution du plugin
-    try {
-      if (typeof plugins[cmd].handler === 'function') {
-        await plugins[cmd].handler(sock, msg, args, context);
-      } else if (typeof plugins[cmd].run === 'function') {
-        await plugins[cmd].run(sock, msg, args, context);
-      } else {
-        await sock.sendMessage(msg.key.remoteJid, { text: "Plugin sans fonction handler/run." });
+        if (reconnectAttempts < 5) {
+          reconnectAttempts++;
+          logger.info(`Reconnexion ${phoneNumber} dans 5s (tentative ${reconnectAttempts}/5)`);
+          await new Promise(res => setTimeout(res, 5000));
+          await connect(); 
+        } else {
+          logger.error(`Échec reconnexion ${phoneNumber} après ${reconnectAttempts} tentatives.`);
+        }
+      } else if (connection === 'open') {
+        reconnectAttempts = 0;
+        logger.info(`Session ${phoneNumber} connectée à WhatsApp.`);
       }
-    } catch (e) {
-      logger.error(`[PLUGIN][${cmd}] Erreur:`, e);
-      await sock.sendMessage(msg.key.remoteJid, { text: "❗ Erreur durant l'exécution de la commande." });
-    }
-  });
+    });
+
+    // Gestion des messages entrants
+    sock.ev.on('messages.upsert', async ({ messages, type }) => {
+      if (type !== 'notify') return;
+      const msg = messages[0];
+      if (!msg.message || msg.key.fromMe) return;
+
+      logger.info(`Message reçu de ${msg.key.remoteJid}`);
+
+      const text = (msg.message.conversation) || (msg.message.extendedTextMessage?.text);
+      if (!text) return;
+      if (!text.startsWith(PREFIX)) return;
+
+      const [command, ...args] = text.slice(PREFIX.length).trim().split(/\s+/);
+      const cmd = command.toLowerCase();
+
+      logger.info(`Session ${phoneNumber} - Commande reçue: ${cmd} - Args: ${args.join(' ')}`);
+
+      if (!plugins[cmd]) {
+        await sock.sendMessage(msg.key.remoteJid, {
+          text: `❓ Commande inconnue: *${cmd}*\nTape ${PREFIX}menu pour la liste.`,
+        });
+        return;
+      }
+
+      if (plugins[cmd].adminOnly && !adminFullNumbers.includes(msg.key.participant || msg.key.remoteJid)) {
+        await sock.sendMessage(msg.key.remoteJid, { text: `❌ Tu n'as pas la permission d'utiliser cette commande.` });
+        logger.warn(`Utilisateur non admin tenté la commande admin ${cmd}`);
+        return;
+      }
+
+      try {
+        if (typeof plugins[cmd].handler === 'function') {
+          await plugins[cmd].handler(sock, msg, args, { prefix: PREFIX, ownerNumbers: adminFullNumbers, botName: BOT_NAME, version: VERSION, phoneNumber, logger });
+        } else if (typeof plugins[cmd].run === 'function') {
+          await plugins[cmd].run(sock, msg, args, { prefix: PREFIX, ownerNumbers: adminFullNumbers, botName: BOT_NAME, version: VERSION, phoneNumber, logger });
+        } else {
+          await sock.sendMessage(msg.key.remoteJid, { text: "Plugin sans fonction handler/run." });
+        }
+      } catch (e) {
+        logger.error(`[PLUGIN][${cmd}] Erreur:`, e);
+        await sock.sendMessage(msg.key.remoteJid, { text: "❗ Erreur durant l'exécution de la commande." });
+      }
+    });
+  }
+
+  await connect();
 
   return sock;
 }

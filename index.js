@@ -1,6 +1,4 @@
-const readline = require('readline');
-const crypto = require('crypto');
-const { default: makeWASocket, useMultiFileAuthState, DisconnectReason } = require('baileys');
+const { default: makeWASocket, useMultiFileAuthState, DisconnectReason, useSingleFileAuthState } = require('baileys');
 const qrcode = require('qrcode-terminal');
 const pino = require('pino');
 const fs = require('fs');
@@ -41,25 +39,6 @@ fs.readdirSync(PLUGINS_DIR)
     }
   });
 
-// === SAISIE INTERACTIVE DES NUMÉROS ===
-async function askPhoneNumbers() {
-  const rl = readline.createInterface({
-    input: process.stdin,
-    output: process.stdout
-  });
-  function question(query) {
-    return new Promise(resolve => rl.question(query, resolve));
-  }
-  let numbers = [];
-  while (true) {
-    const answer = await question("Entrez un numéro de téléphone WhatsApp (ou laissez vide pour finir) : ");
-    if (!answer.trim()) break;
-    numbers.push(answer.trim());
-  }
-  rl.close();
-  return numbers;
-}
-
 // === DÉBUT BOT ===
 async function startSession(phoneNumber) {
   console.log(`Démarrage de la session pour le numéro : ${phoneNumber}...`);
@@ -68,13 +47,12 @@ async function startSession(phoneNumber) {
   const sessionId = crypto.createHash('sha256').update(cleanedNumber).digest('hex');
   console.log(`Session ID (SHA-256): ${sessionId}`);
   const sessionPath = path.join(SESSIONS_DIR, sessionId);
-  if (!fs.existsSync(sessionPath)) fs.mkdirSync(sessionPath);
 
-  const { state, saveCreds } = await useMultiFileAuthState(sessionPath);
+  const { state, saveCreds } = await useSingleFileAuthState(path.join(sessionPath, 'auth_info.json'));
 
   const sock = makeWASocket({
     auth: state,
-    // printQRInTerminal: true, // désactivé, on gère le QR nous-même
+    printQRInTerminal: true,
     logger: pino({ level: config.DEBUG ? 'debug' : 'silent' }),
   });
 
@@ -87,7 +65,7 @@ async function startSession(phoneNumber) {
     const { connection, lastDisconnect, qr } = update;
 
     if (qr) {
-      console.log("Scanne ce QR code avec WhatsApp pour connecter le bot :");
+      console.log("Scanne ce QR code avec WhatsApp pour connecter le bot :");
       qrcode.generate(qr, { small: true });
     }
 
@@ -155,20 +133,15 @@ async function startSession(phoneNumber) {
 
 async function startBot() {
   console.log(`Démarrage du bot ${BOT_NAME}...`);
-  let phoneNumbers = config.PHONE_NUMBERS;
-  if (!phoneNumbers || phoneNumbers.length === 0) {
-    phoneNumbers = await askPhoneNumbers();
-    if (!phoneNumbers.length) {
-      console.error("Aucun numéro saisi. Arrêt.");
-      process.exit(1);
-    }
+  const phoneNumber = config.PHONE_NUMBER;
+  if (!phoneNumber) {
+    console.error("Aucun numéro configuré. Arrêt.");
+    process.exit(1);
   }
 
-  for (const phoneNumber of phoneNumbers) {
-    startSession(phoneNumber).catch((err) =>
-      console.error(`Erreur au démarrage de la session pour ${phoneNumber}:`, err)
-    );
-  }
+  startSession(phoneNumber).catch((err) =>
+    console.error(`Erreur au démarrage de la session pour ${phoneNumber}:`, err)
+  );
 }
 
 // ==== CHANGELOG ====
@@ -182,7 +155,7 @@ const CHANGELOG = [
       'Mise en place du système de logs.',
       'Affichage du QR code en ASCII avec qrcode-terminal.',
       'Hashage SHA-256 du numéro pour anonymiser les dossiers de session.',
-      'Ajout de la saisie interactive des numéros au démarrage.',
+      'Utilisation de useSingleFileAuthState pour stocker les informations d\'authentification dans un seul fichier.',
     ],
   },
 ];

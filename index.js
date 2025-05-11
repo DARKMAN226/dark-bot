@@ -1,5 +1,4 @@
-// index.js - Bot WhatsApp avec baileys v5+ du bot Dark-bot sans problème 
-// ===============================
+// index.js - Bot WhatsApp avec baileys v5+ - Dark-BOT sans problème
 
 const fs = require('fs');
 const path = require('path');
@@ -19,11 +18,11 @@ const {
 // === LES CONFIGURATIONS ===
 const config = {
   PREFIX: '!',
-  ADMINS: ['1234567890@s.whatsapp.net'],
+  ADMINS: ['1234567890@s.whatsapp.net'], 
   BOT_NAME: 'Dark-BOT',
   VERSION: '1.0.0',
   DEBUG: true,
-  PHONE_NUMBERS: [],
+  PHONE_NUMBERS: [], 
 };
 
 
@@ -106,7 +105,7 @@ async function startSession(phoneNumber) {
 
   const sock = makeWASocket({
     auth: state,
-    printQRInTerminal: false, // On génère un QR personnalisé
+    printQRInTerminal: false, // On génère un QR personnalisé dans la console via qrcode-terminal
     logger: pino({ level: config.DEBUG ? 'debug' : 'silent' }),
   });
 
@@ -132,7 +131,12 @@ async function startSession(phoneNumber) {
       if (shouldReconnect && reconnectAttempts < 5) {
         reconnectAttempts++;
         logger.info(`Reconnexion ${phoneNumber} dans 5s (tentative ${reconnectAttempts}/5)`);
-        setTimeout(() => startSession(phoneNumber), 5000);
+        setTimeout(() => {
+          // Fermer la socket permet de forcer une reconnexion propre
+          if (sock.ws.readyState === 1) {
+            sock.ws.close();
+          }
+        }, 5000);
       } else if (statusCode === DisconnectReason.loggedOut) {
         logger.error(`Session ${phoneNumber} déconnectée (logout). Supprime le dossier ${sessionPath} pour reconnecter.`);
       } else {
@@ -160,9 +164,14 @@ async function startSession(phoneNumber) {
     const msg = messages[0];
     if (!msg.message || msg.key.fromMe) return;
 
+    // Affiche dans la console d'où vient le message
+    logger.info(`Message reçu de ${msg.key.remoteJid}`);
+
     // Récupération texte simple
     const text = (msg.message.conversation) || (msg.message.extendedTextMessage?.text);
-    if (!text || !text.startsWith(PREFIX)) return;
+    if (!text) return;
+
+    if (!text.startsWith(PREFIX)) return;
 
     const [command, ...args] = text.slice(PREFIX.length).trim().split(/\s+/);
     const cmd = command.toLowerCase();
@@ -202,6 +211,7 @@ async function startSession(phoneNumber) {
 }
 
 
+
 // === COMMANDE MENU  ===
 plugins['menu'] = {
   command: 'menu',
@@ -218,6 +228,7 @@ plugins['menu'] = {
 };
 
 
+
 // === FONCTION PRINCIPALE ===
 async function startBot() {
   logger.info(`Démarrage de ${BOT_NAME}...`);
@@ -231,15 +242,22 @@ async function startBot() {
     }
   }
 
+  // On démarre toutes les sessions en série (pour éviter conflits)
   for (const phone of phoneNumbers) {
-    startSession(formatNumber(phone)).catch(e => {
+    try {
+      await startSession(formatNumber(phone));
+    } catch (e) {
       logger.error(`Erreur démarrage session ${phone}:`, e);
-    });
+    }
   }
 }
 
+
+
 // Lancement
 startBot().catch(err => logger.error("Erreur au démarrage du bot:", err));
+
+
 
 // === EXPORT Plugins pour usage externe ===
 module.exports = plugins;

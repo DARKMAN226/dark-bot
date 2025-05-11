@@ -18,11 +18,11 @@ const {
 // === LES CONFIGURATIONS ===
 const config = {
   PREFIX: '!',
-  ADMINS: ['1234567890@s.whatsapp.net'],  // Remplace par ton numéro admin
+  ADMINS: ['1234567890@s.whatsapp.net'],
   BOT_NAME: 'Dark-BOT',
   VERSION: '1.0.0',
   DEBUG: true,
-  PHONE_NUMBERS: [], // Ou liste tes numéros ici déjà formatés si tu veux
+  PHONE_NUMBERS: [],
 };
 
 

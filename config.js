@@ -1,95 +1,37 @@
-/**
- * Configuration principale du bot 😈Dark-BOT🔐
- * 
- * ⚠️ IMPORTANT :
- * - Mets ton numéro WhatsApp au format international sans le signe + ni espaces.
- * - La SESSION_ID correspond au nom du dossier de session Baileys (généré après pairing).
- * - Le préfixe est le caractère qui précède toutes les commandes.
- * - La liste ADMINS contient les numéros autorisés (sans + ni suffixe).
- * - OWNER_NAME correspond au nom affiché du propriétaire/admin du bot.
- */
+// config.js
+const fs = require("fs");
+require("dotenv").config();
 
-module.exports = {
-    /**
-     * Numéro WhatsApp du bot (format international sans + ni suffixe)
-     * Exemple : '22603582906' pour +226 03 58 29 06
-     */
-    BOT_NUMBER: '22677583530',
+const config = {
+  SESSION_ID: process.env.SESSION_ID || "Your Session Id",
+  PREFIX: process.env.PREFIX || '.',
+  AUTO_STATUS_SEEN: process.env.AUTO_STATUS_SEEN !== undefined ? process.env.AUTO_STATUS_SEEN === 'true' : true, 
+  AUTO_STATUS_REPLY: process.env.AUTO_STATUS_REPLY !== undefined ? process.env.AUTO_STATUS_REPLY === 'true' : true,
+  STATUS_READ_MSG: process.env.STATUS_READ_MSG || '',
+  AUTO_DL: process.env.AUTO_DL !== undefined ? process.env.AUTO_DL === 'true' : false,
+  AUTO_READ: process.env.AUTO_READ !== undefined ? process.env.AUTO_READ === 'true' : false,
+  AUTO_TYPING: process.env.AUTO_TYPING !== undefined ? process.env.AUTO_TYPING === 'true' : false,
+  AUTO_RECORDING: process.env.AUTO_RECORDING !== undefined ? process.env.AUTO_RECORDING === 'true' : false,
+  ALWAYS_ONLINE: process.env.ALWAYS_ONLINE !== undefined ? process.env.ALWAYS_ONLINE === 'true' : false,
+  AUTO_REACT: process.env.AUTO_REACT !== undefined ? process.env.AUTO_REACT === 'true' : false,
+   /*auto block only for 212 */
+  AUTO_BLOCK: process.env.AUTO_BLOCK !== undefined ? process.env.AUTO_BLOCK === 'true' : true,
   
-    /**
-     * Liste des numéros WhatsApp supplémentaires (format international sans + ni suffixe)
-     * Exemple : ['22603582906', '22612345678']
-     */
-    PHONE_NUMBERS: [
-      '2260705607226',
-      '2260507646665',
-    ],
   
-    /**
-     * Nom du dossier où Baileys sauvegarde la session (dans ./session/)
-     * Exemple : 'session' ou 'darkbot-session'
-     * Ce dossier est créé automatiquement après le pairing initial.
-     */
-    SESSION_ID: 'session',
-  
-    /**
-     * Préfixe utilisé pour toutes les commandes du bot.
-     * Exemple : '!' ou '.' ou '/'
-     */
-    PREFIX: '!',
-  
-    /**
-     * Liste des numéros WhatsApp des administrateurs autorisés
-     * Format : tableau de chaînes, numéros sans + ni suffixe.
-     */
-    ADMINS: [
-      '22603582906', // Ton numéro ou celui des admins
-    ],
-  
-    /**
-     * Nom affiché du bot dans les messages système ou menus.
-     */
-    BOT_NAME: '😈Dark-BOT🔐',
-
-    /**
-     * Nom du propriétaire/admin du bot (affiché dans les messages, menus, etc.)
-     */
-    OWNER_NAME: 'TonNom',  // <-- Mets ici ton prénom ou pseudo
-  
-    /**
-     * Version du bot (utile pour le suivi des mises à jour).
-     */
-    VERSION: '1.0.0',
-  
-    /**
-     * Mode debug : true pour afficher des logs détaillés, false pour mode production.
-     */
-    DEBUG: false,
-  
-    /**
-     * Chemins des dossiers importants (relatifs à la racine du projet)
-     */
-    PATHS: {
-      PLUGINS: './plugins',
-      SESSION: './session',
-      DATA: './data',
-      ASSETS: './assets',
-    },
-
-    /**
-     * Historique des mises à jour du bot
-     * Utilisé pour garder une trace des modifications et ajouts.
-     */
-    CHANGELOG: [
-      {
-        version: '1.0.0',
-        date: '2025-05-01',
-        changes: [
-          'Initialisation du bot avec les fonctionnalités de base.',
-          'Ajout de la gestion des sessions.',
-          'Mise en place du système de logs.',
-        ],
-      },
-      
-    ],
+  REJECT_CALL: process.env.REJECT_CALL !== undefined ? process.env.REJECT_CALL === 'true' : false, 
+  NOT_ALLOW: process.env.NOT_ALLOW !== undefined ? process.env.NOT_ALLOW === 'true' : true,
+  MODE: process.env.MODE || "public",
+  BOT_NAME: process.env.BOT_NAME || "ℂ𝕃𝕆𝕌𝔻 𝔸𝕀",
+  MENU_IMAGE: process.env.MENU_IMAGE || "https://files.catbox.moe/7l1tt5.jpg",
+  DESCRIPTION: process.env.DESCRIPTION || "TECH MD",
+  OWNER_NAME: process.env.OWNER_NAME || "THOMAS TECH",
+  OWNER_NUMBER: process.env.OWNER_NUMBER || "0743982206",
+  GEMINI_KEY: process.env.GEMINI_KEY || "AIzaSyCUPaxfIdZawsKZKqCqJcC-GWiQPCXKTDc",
+  WELCOME: process.env.WELCOME !== undefined ? process.env.WELCOME === 'true' : false, 
 };
+
+
+module.exports = config;
+
+
+fait  le fichier  config.js pour  dark-bot 

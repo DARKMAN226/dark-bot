@@ -1,4 +1,4 @@
-// index.js - Dark-BOT modernisé, session cloud MEGA façon CLOUD-AI
+// index.js - Dark-BOT 
 
 import dotenv from 'dotenv';
 dotenv.config();

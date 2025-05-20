@@ -46,7 +46,7 @@ async function downloadSessionData() {
     logger.error('❌ SESSION_ID manquant dans .env');
     return false;
   }
-  const sessdata = config.SESSION_ID.split("cloud-ai~")[1] || config.SESSION_ID.split("CLOUD-AI~")[1];
+  const sessdata = config.SESSION_ID.split("cloud-ai~")[1] || config.SESSION_ID.split("DARK-BOT~")[1];
   if (!sessdata || !sessdata.includes("#")) {
     logger.error('❌ Format SESSION_ID invalide, attendu: dark-bot~ID#KEY');
     return false;
